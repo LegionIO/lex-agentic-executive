@@ -77,6 +77,19 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Disengagement::Helpers::D
       expect { engine.disengage_goal(goal_id: 'nope', reason: :sunk_cost) }
         .to raise_error(ArgumentError)
     end
+
+    it 'raises ArgumentError for invalid reason' do
+      expect { engine.disengage_goal(goal_id: goal.id, reason: :boredom) }
+        .to raise_error(ArgumentError, /invalid reason/)
+    end
+
+    it 'accepts all valid DISENGAGE_REASONS' do
+      constants = Legion::Extensions::Agentic::Executive::Disengagement::Helpers::Constants
+      constants::DISENGAGE_REASONS.each do |reason|
+        g = engine.create_goal(label: "goal_#{reason}", domain: :test)
+        expect { engine.disengage_goal(goal_id: g.id, reason: reason) }.not_to raise_error
+      end
+    end
   end
 
   describe '#stalled_goals' do

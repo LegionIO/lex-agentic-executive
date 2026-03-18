@@ -32,6 +32,8 @@ module Legion
                 return nil unless conflict
 
                 strat = strategy.to_sym
+                return nil unless STRATEGIES.include?(strat)
+
                 @strategy_history[strat] += 1
                 conflict.apply_strategy!(strategy: strat, effectiveness: effectiveness)
                 @strategy_successes[strat] += 1 if conflict.resolved?

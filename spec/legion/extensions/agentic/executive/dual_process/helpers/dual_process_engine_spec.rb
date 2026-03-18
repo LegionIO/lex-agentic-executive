@@ -165,6 +165,21 @@ RSpec.describe Legion::Extensions::Agentic::Executive::DualProcess::Helpers::Dua
       expect(result[:success]).to be false
       expect(result[:reason]).to eq(:not_found)
     end
+
+    it 'rejects invalid outcome' do
+      result = engine.record_outcome(decision_id: decision_id, outcome: :maybe)
+      expect(result[:success]).to be false
+      expect(result[:reason]).to eq(:invalid_outcome)
+    end
+
+    it 'accepts all valid DECISION_OUTCOMES' do
+      constants = Legion::Extensions::Agentic::Executive::DualProcess::Helpers::Constants
+      constants::DECISION_OUTCOMES.each do |out|
+        did = engine.execute_system_one(query: "test_#{out}", domain: :work)[:decision_id]
+        result = engine.record_outcome(decision_id: did, outcome: out)
+        expect(result[:success]).to be true
+      end
+    end
   end
 
   describe '#effort_level' do

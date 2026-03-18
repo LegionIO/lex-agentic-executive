@@ -5,7 +5,7 @@ module Legion
     module Agentic
       module Executive
         module Inhibition
-          VERSION = '0.1.0'
+          VERSION = '0.1.1'
         end
       end
     end

@@ -29,6 +29,19 @@ RSpec.describe Legion::Extensions::Agentic::Executive::DissonanceResolution::Hel
       reframe = report.find { |s| s[:strategy] == :reframe }
       expect(reframe[:uses]).to eq(1)
     end
+
+    it 'rejects invalid strategy' do
+      expect(engine.apply_strategy(conflict_id: conflict.id, strategy: :magic)).to be_nil
+    end
+
+    it 'accepts all valid STRATEGIES' do
+      constants = Legion::Extensions::Agentic::Executive::DissonanceResolution::Helpers::Constants
+      constants::STRATEGIES.each do |strat|
+        c = engine.create_conflict(belief_a: 'a', belief_b: 'b')
+        result = engine.apply_strategy(conflict_id: c.id, strategy: strat)
+        expect(result).not_to be_nil
+      end
+    end
   end
 
   describe '#escalate_conflict' do

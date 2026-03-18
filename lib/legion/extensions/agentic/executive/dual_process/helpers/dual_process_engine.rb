@@ -92,6 +92,8 @@ module Legion
               end
 
               def record_outcome(decision_id:, outcome:)
+                return { success: false, reason: :invalid_outcome } unless Constants::DECISION_OUTCOMES.include?(outcome)
+
                 decision = @decisions.find { |d| d.id == decision_id }
                 return { success: false, reason: :not_found } unless decision
 

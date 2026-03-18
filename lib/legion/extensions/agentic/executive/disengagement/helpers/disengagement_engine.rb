@@ -42,6 +42,11 @@ module Legion
               end
 
               def disengage_goal(goal_id:, reason:)
+                unless Constants::DISENGAGE_REASONS.include?(reason.to_sym)
+                  raise ArgumentError,
+                        "invalid reason: #{reason.inspect}, must be one of #{Constants::DISENGAGE_REASONS}"
+                end
+
                 goal = fetch_goal!(goal_id)
                 goal.disengage!(reason: reason)
                 goal

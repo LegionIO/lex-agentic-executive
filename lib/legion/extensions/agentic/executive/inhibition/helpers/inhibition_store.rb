@@ -15,6 +15,8 @@ module Legion
               end
 
               def create_impulse(type:, action:, strength:, source: nil, context: {})
+                return nil unless Constants::IMPULSE_TYPES.include?(type.to_sym)
+
                 resolved_strength = resolve_strength(strength)
 
                 impulse = Impulse.new(

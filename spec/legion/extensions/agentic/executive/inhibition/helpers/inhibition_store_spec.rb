@@ -55,6 +55,18 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Inhibition::Helpers::Inhi
       impulse = store.create_impulse(type: :reactive, action: :act, strength: :unknown_level)
       expect(impulse.strength).to eq(Legion::Extensions::Agentic::Executive::Inhibition::Helpers::Constants::IMPULSE_STRENGTHS[:moderate])
     end
+
+    it 'rejects invalid impulse type' do
+      expect(store.create_impulse(type: :telepathic, action: :act, strength: :moderate)).to be_nil
+    end
+
+    it 'accepts all valid IMPULSE_TYPES' do
+      constants = Legion::Extensions::Agentic::Executive::Inhibition::Helpers::Constants
+      constants::IMPULSE_TYPES.each do |itype|
+        result = store.create_impulse(type: itype, action: :act, strength: :moderate)
+        expect(result).not_to be_nil
+      end
+    end
   end
 
   describe '#evaluate_and_apply' do

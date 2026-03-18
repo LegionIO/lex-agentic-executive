@@ -7,7 +7,7 @@
 Domain consolidation gem for executive function, goal management, planning, and cognitive control. Bundles 23 source extensions into one loadable unit under `Legion::Extensions::Agentic::Executive`.
 
 **Gem**: `lex-agentic-executive`
-**Version**: 0.1.0
+**Version**: 0.1.1
 **Namespace**: `Legion::Extensions::Agentic::Executive`
 
 ## Sub-Modules
@@ -46,6 +46,6 @@ Domain consolidation gem for executive function, goal management, planning, and 
 
 ```bash
 bundle install
-bundle exec rspec        # 2084 examples, 0 failures
+bundle exec rspec        # 2092 examples, 0 failures
 bundle exec rubocop      # 0 offenses
 ```

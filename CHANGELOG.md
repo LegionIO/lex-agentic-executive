@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-18
+
+### Changed
+- Enforce IMPULSE_TYPES validation in InhibitionStore#create_impulse (returns nil for invalid type)
+- Enforce STRATEGIES validation in ResolutionEngine#apply_strategy (returns nil for invalid strategy)
+- Enforce DISENGAGE_REASONS validation in DisengagementEngine#disengage_goal (raises ArgumentError)
+- Enforce DECISION_OUTCOMES validation in DualProcessEngine#record_outcome (returns failure hash)
+
 ## [0.1.0] - 2026-03-18
 
 ### Added

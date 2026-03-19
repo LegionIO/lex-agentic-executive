@@ -36,6 +36,11 @@ Domain consolidation gem for executive function, goal management, planning, and 
 | `Executive::ProspectiveMemory` | `lex-prospective-memory` | Memory for future intentions — reminder management |
 | `Executive::CognitiveDebt` | `lex-cognitive-debt` | Accumulated cognitive obligations and deferred processing |
 
+## Actors
+
+- `Executive::ExecutiveFunction::Actors::Recovery` — interval actor, runs executive function recovery cycle
+- `Executive::Flexibility::Actors::Tick` — interval actor, processes cognitive flexibility tick
+
 ## Installation
 
 ```ruby

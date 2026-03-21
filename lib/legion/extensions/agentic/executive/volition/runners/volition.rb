@@ -76,6 +76,38 @@ module Legion
                 { status: result, intention_id: intention_id }
               end
 
+              def form_absorption_intention(domains_at_risk:, neighboring_agents: [], severity: :warning, **)
+                domains = Array(domains_at_risk)
+                neighbors = Array(neighboring_agents)
+
+                return { success: false, reason: :no_domains } if domains.empty?
+
+                base_salience = severity.to_sym == :critical ? 0.85 : 0.55
+                salience = [base_salience + (domains.size * 0.05), 1.0].min
+
+                intention = Helpers::Intention.new_intention(
+                  drive:    :epistemic,
+                  domain:   :knowledge,
+                  goal:     "absorb knowledge for domains: #{domains.join(', ')}",
+                  salience: salience,
+                  context:  { domains_at_risk: domains, target_agents: neighbors, severity: severity,
+                             triggered_by: :knowledge_vulnerability }
+                )
+
+                result = intention_stack.push(intention)
+                Legion::Logging.info "[volition] absorption intention formed: domains=#{domains.join(',')} " \
+                                     "neighbors=#{neighbors.size} salience=#{salience.round(2)} result=#{result}"
+
+                {
+                  success:      %i[pushed duplicate].include?(result),
+                  result:       result,
+                  intention_id: intention[:intention_id],
+                  salience:     salience,
+                  domains:      domains,
+                  targets:      neighbors
+                }
+              end
+
               def volition_status(**)
                 stats = intention_stack.stats
                 drives = Helpers::DriveSynthesizer.synthesize(tick_results: {}, cognitive_state: {})

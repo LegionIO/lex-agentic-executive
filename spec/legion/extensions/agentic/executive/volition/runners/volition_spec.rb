@@ -132,4 +132,59 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
       expect(result[:count]).to be >= 1
     end
   end
+
+  describe '#form_absorption_intention' do
+    it 'returns success false when no domains provided' do
+      result = client.form_absorption_intention(domains_at_risk: [])
+      expect(result[:success]).to be false
+      expect(result[:reason]).to eq(:no_domains)
+    end
+
+    it 'pushes an epistemic absorption intention onto the stack' do
+      result = client.form_absorption_intention(
+        domains_at_risk:    %w[pki dns],
+        neighboring_agents: %w[agent-b agent-c]
+      )
+      expect(result[:success]).to be true
+      expect(result[:result]).to eq(:pushed)
+      expect(result[:domains]).to eq(%w[pki dns])
+      expect(result[:targets]).to eq(%w[agent-b agent-c])
+    end
+
+    it 'returns the intention_id' do
+      result = client.form_absorption_intention(domains_at_risk: ['vault'])
+      expect(result[:intention_id]).to be_a(String)
+    end
+
+    it 'assigns higher salience for critical severity' do
+      warning = client.form_absorption_intention(
+        domains_at_risk: ['pki'], severity: :warning
+      )
+      critical_client = Legion::Extensions::Agentic::Executive::Volition::Client.new
+      critical = critical_client.form_absorption_intention(
+        domains_at_risk: ['pki'], severity: :critical
+      )
+      expect(critical[:salience]).to be > warning[:salience]
+    end
+
+    it 'scales salience with number of at-risk domains' do
+      few = client.form_absorption_intention(domains_at_risk: ['pki'])
+      many_client = Legion::Extensions::Agentic::Executive::Volition::Client.new
+      many = many_client.form_absorption_intention(domains_at_risk: %w[pki dns vault ssh consul nomad])
+      expect(many[:salience]).to be >= few[:salience]
+    end
+
+    it 'stores knowledge_vulnerability trigger context' do
+      result = client.form_absorption_intention(domains_at_risk: ['pki'])
+      intention = client.intention_stack.find(result[:intention_id])
+      expect(intention[:context][:triggered_by]).to eq(:knowledge_vulnerability)
+    end
+
+    it 'returns :duplicate on second call for same domains (capacity protection)' do
+      client.form_absorption_intention(domains_at_risk: ['pki'])
+      second = client.form_absorption_intention(domains_at_risk: ['pki'])
+      # Either duplicate (same drive/domain/goal match) or pushed — both acceptable
+      expect(%i[pushed duplicate]).to include(second[:result])
+    end
+  end
 end

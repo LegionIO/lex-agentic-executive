@@ -4,8 +4,8 @@ require 'spec_helper'
 
 RSpec.describe Legion::Extensions::Agentic::Executive::WorkingMemory::Helpers::Constants do
   describe 'CAPACITY' do
-    it 'is 7 (Miller\'s Law)' do
-      expect(described_class::CAPACITY).to eq(7)
+    it 'is 4 (Cowan 2001)' do
+      expect(described_class::CAPACITY).to eq(4)
     end
   end
 

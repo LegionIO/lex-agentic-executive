@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-03-21
+
+### Changed
+- Working memory CAPACITY reduced from 7 to 4 (Cowan 2001)
+- Chunking WORKING_MEMORY_CAPACITY updated from 7 to 4
+- Effective max remains 7 via CHUNK_BONUS (4 base + 3 bonus)
+
 ## [0.1.1] - 2026-03-18
 
 ### Changed

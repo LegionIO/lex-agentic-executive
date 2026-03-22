@@ -97,7 +97,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Chunking::Runners::Cognit
     it 'returns success with capacity info' do
       result = client.working_memory_status(engine: engine)
       expect(result[:success]).to be true
-      expect(result[:capacity]).to eq(7)
+      expect(result[:capacity]).to eq(4)
     end
 
     it 'returns a capacity label' do

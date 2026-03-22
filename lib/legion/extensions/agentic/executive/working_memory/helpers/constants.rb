@@ -7,7 +7,7 @@ module Legion
         module WorkingMemory
           module Helpers
             module Constants
-              CAPACITY = 7
+              CAPACITY = 4
 
               CHUNK_BONUS = 3
 

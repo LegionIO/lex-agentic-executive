@@ -9,7 +9,7 @@ module Legion
             module Constants
               MAX_ITEMS               = 500
               MAX_CHUNKS              = 200
-              WORKING_MEMORY_CAPACITY = 7    # Miller's magic number
+              WORKING_MEMORY_CAPACITY = 4    # Cowan (2001) core capacity
               CAPACITY_VARIANCE       = 2    # +/- 2
               DEFAULT_COHERENCE       = 0.5
               COHERENCE_BOOST         = 0.08

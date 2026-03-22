@@ -10,8 +10,8 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Chunking::Helpers::Consta
       expect(described_class::MAX_CHUNKS).to eq(200)
     end
 
-    it 'defines WORKING_MEMORY_CAPACITY as 7' do
-      expect(described_class::WORKING_MEMORY_CAPACITY).to eq(7)
+    it 'defines WORKING_MEMORY_CAPACITY as 4' do
+      expect(described_class::WORKING_MEMORY_CAPACITY).to eq(4)
     end
 
     it 'defines CAPACITY_VARIANCE as 2' do

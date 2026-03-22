@@ -71,10 +71,10 @@ RSpec.describe Legion::Extensions::Agentic::Executive::WorkingMemory::Client do
       expect(client.working_memory_stats[:size]).to eq(0)
     end
 
-    it 'models the 7 plus-or-minus 2 capacity limit' do
+    it 'models the 4 plus-or-minus 2 capacity limit' do
       # Fill to base capacity
-      7.times { |i| client.store_item(content: "item #{i}", priority: :normal) }
-      expect(client.buffer.size).to eq(7)
+      4.times { |i| client.store_item(content: "item #{i}", priority: :normal) }
+      expect(client.buffer.size).to eq(4)
 
       # Without chunking, adding more evicts lowest activation
       3.times { |i| client.store_item(content: "overflow #{i}", priority: :high) }

@@ -174,7 +174,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Chunking::Helpers::Chunki
       id = engine.add_item(content: 'x')[:item_id]
       cid = engine.create_chunk(label: 'x', item_ids: [id])[:chunk_id]
       engine.load_to_working_memory(chunk_id: cid)
-      expected = (1.0 / 7).round(10)
+      expected = (1.0 / 4).round(10)
       expect(engine.working_memory_load).to be_within(0.0001).of(expected)
     end
   end

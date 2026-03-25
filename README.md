@@ -51,7 +51,7 @@ gem 'lex-agentic-executive'
 
 ```bash
 bundle install
-bundle exec rspec        # 2067 examples, 0 failures
+bundle exec rspec        # 2081 examples, 0 failures
 bundle exec rubocop      # 0 offenses
 ```
 

@@ -40,7 +40,7 @@ module Legion
                 [(0.6...0.8),  :reliable],
                 [(0.4...0.6),  :approximate],
                 [(0.2...0.4),  :drifting],
-                [(..0.2),      :lost]
+                [..0.2,        :lost]
               ].freeze
 
               # Declination severity labels
@@ -49,7 +49,7 @@ module Legion
                 [(0.6...0.8),  :significant],
                 [(0.4...0.6),  :moderate],
                 [(0.2...0.4),  :mild],
-                [(..0.2),      :negligible]
+                [..0.2,        :negligible]
               ].freeze
 
               def self.label_for(table, value)

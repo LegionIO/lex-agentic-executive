@@ -31,7 +31,7 @@ module Legion
       module Executive
         extend Legion::Extensions::Core if Legion::Extensions.const_defined? :Core
 
-        def remote_invocable?
+        def self.remote_invocable?
           false
         end
       end

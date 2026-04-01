@@ -28,8 +28,8 @@ module Legion
                 current = intention_stack.top
                 proactive = evaluate_proactive_outreach(tick_results, bond_state)
 
-                Legion::Logging.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed} expired=#{expired} " \
-                                      "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
+                log.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed} expired=#{expired} " \
+                          "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
 
                 {
                   drives:             drives,
@@ -57,19 +57,19 @@ module Legion
 
               def complete_intention(intention_id:, **)
                 result = intention_stack.complete(intention_id)
-                Legion::Logging.info "[volition] complete intention=#{intention_id} result=#{result}"
+                log.info "[volition] complete intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
               def suspend_intention(intention_id:, **)
                 result = intention_stack.suspend(intention_id)
-                Legion::Logging.info "[volition] suspend intention=#{intention_id} result=#{result}"
+                log.info "[volition] suspend intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
               def resume_intention(intention_id:, **)
                 result = intention_stack.resume(intention_id)
-                Legion::Logging.info "[volition] resume intention=#{intention_id} result=#{result}"
+                log.info "[volition] resume intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
@@ -97,8 +97,8 @@ module Legion
                 )
 
                 result = intention_stack.push(intention)
-                Legion::Logging.info "[volition] absorption intention formed: domains=#{domains.join(',')} " \
-                                     "neighbors=#{neighbors.size} salience=#{salience.round(2)} result=#{result}"
+                log.info "[volition] absorption intention formed: domains=#{domains.join(',')} " \
+                         "neighbors=#{neighbors.size} salience=#{salience.round(2)} result=#{result}"
 
                 {
                   success:      %i[pushed duplicate].include?(result),

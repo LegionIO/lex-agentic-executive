@@ -133,6 +133,107 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
     end
   end
 
+  describe '#form_intentions with proactive evaluation' do
+    let(:bond_state) do
+      {
+        partner_bond: {
+          stage: :established,
+          strength: 0.72,
+          style: :secure,
+          health: 0.85,
+          milestones_today: [],
+          narrative: nil
+        }
+      }
+    end
+
+    context 'when bond_state has partner bond' do
+      it 'includes proactive_outreach in result' do
+        result = client.form_intentions(tick_results: {}, bond_state: bond_state)
+        expect(result).to have_key(:proactive_outreach)
+      end
+
+      it 'returns nil proactive when no triggers fire' do
+        result = client.form_intentions(tick_results: {}, bond_state: bond_state)
+        expect(result[:proactive_outreach]).to be_nil
+      end
+    end
+
+    context 'when dream reflection has an insight' do
+      let(:tick_results) do
+        { dream_reflection: { insight: 'Discovered an interesting pattern in partner interaction frequency that suggests weekly review cycles.' } }
+      end
+
+      it 'generates insight trigger' do
+        result = client.form_intentions(tick_results: tick_results, bond_state: bond_state)
+        outreach = result[:proactive_outreach]
+        expect(outreach).not_to be_nil
+        expect(outreach[:trigger][:reason]).to eq(:insight)
+      end
+    end
+
+    context 'when partner absence exceeds pattern' do
+      let(:bond_state_absent) do
+        bond_state.merge(partner_bond: bond_state[:partner_bond].merge(absence_exceeds_pattern: true))
+      end
+
+      it 'generates check_in trigger' do
+        result = client.form_intentions(tick_results: {}, bond_state: bond_state_absent)
+        outreach = result[:proactive_outreach]
+        expect(outreach).not_to be_nil
+        expect(outreach[:trigger][:reason]).to eq(:check_in)
+      end
+    end
+
+    context 'when milestones exist today' do
+      let(:bond_state_milestone) do
+        ms = { description: 'Bond stage reached established', type: :stage_transition }
+        bond_state.merge(partner_bond: bond_state[:partner_bond].merge(milestones_today: [ms]))
+      end
+
+      it 'generates milestone trigger' do
+        result = client.form_intentions(tick_results: {}, bond_state: bond_state_milestone)
+        outreach = result[:proactive_outreach]
+        expect(outreach).not_to be_nil
+        expect(outreach[:trigger][:reason]).to eq(:milestone)
+      end
+    end
+
+    context 'when agenda has partner items' do
+      let(:tick_results) do
+        { agenda_formation: { agenda: [{ domain: :partner, question: 'How is the project going?' }] } }
+      end
+
+      it 'generates curiosity trigger' do
+        result = client.form_intentions(tick_results: tick_results, bond_state: bond_state)
+        outreach = result[:proactive_outreach]
+        expect(outreach).not_to be_nil
+        expect(outreach[:trigger][:reason]).to eq(:curiosity)
+      end
+    end
+
+    context 'when bond_state is empty' do
+      it 'returns nil proactive' do
+        result = client.form_intentions(tick_results: {}, bond_state: {})
+        expect(result[:proactive_outreach]).to be_nil
+      end
+    end
+
+    context 'when attachment style is avoidant' do
+      let(:bond_state_avoidant) do
+        bond_state.merge(partner_bond: bond_state[:partner_bond].merge(
+          style: :avoidant,
+          absence_exceeds_pattern: true
+        ))
+      end
+
+      it 'suppresses proactive outreach' do
+        result = client.form_intentions(tick_results: {}, bond_state: bond_state_avoidant)
+        expect(result[:proactive_outreach]).to be_nil
+      end
+    end
+  end
+
   describe '#form_absorption_intention' do
     it 'returns success false when no domains provided' do
       result = client.form_absorption_intention(domains_at_risk: [])

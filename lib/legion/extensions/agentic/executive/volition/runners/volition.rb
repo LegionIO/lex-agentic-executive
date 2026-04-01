@@ -10,7 +10,7 @@ module Legion
               include Legion::Extensions::Helpers::Lex if Legion::Extensions.const_defined?(:Helpers) &&
                                                           Legion::Extensions::Helpers.const_defined?(:Lex)
 
-              def form_intentions(tick_results: {}, cognitive_state: {}, **)
+              def form_intentions(tick_results: {}, cognitive_state: {}, bond_state: {}, **)
                 drives = Helpers::DriveSynthesizer.synthesize(
                   tick_results:    tick_results,
                   cognitive_state: cognitive_state
@@ -26,17 +26,19 @@ module Legion
                 expired = intention_stack.decay_all
                 dominant = Helpers::DriveSynthesizer.dominant_drive(drives)
                 current = intention_stack.top
+                proactive = evaluate_proactive_outreach(tick_results, bond_state)
 
-                Legion::Logging.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed} expired=#{expired} " \
-                                      "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
+                log.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed} expired=#{expired} " \
+                          "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
 
                 {
-                  drives:            drives,
-                  dominant_drive:    dominant,
-                  new_intentions:    pushed,
-                  expired:           expired,
-                  active_intentions: intention_stack.active_count,
-                  current_intention: format_intention(current)
+                  drives:             drives,
+                  dominant_drive:     dominant,
+                  new_intentions:     pushed,
+                  expired:            expired,
+                  active_intentions:  intention_stack.active_count,
+                  current_intention:  format_intention(current),
+                  proactive_outreach: proactive
                 }
               end
 
@@ -55,19 +57,19 @@ module Legion
 
               def complete_intention(intention_id:, **)
                 result = intention_stack.complete(intention_id)
-                Legion::Logging.info "[volition] complete intention=#{intention_id} result=#{result}"
+                log.info "[volition] complete intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
               def suspend_intention(intention_id:, **)
                 result = intention_stack.suspend(intention_id)
-                Legion::Logging.info "[volition] suspend intention=#{intention_id} result=#{result}"
+                log.info "[volition] suspend intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
               def resume_intention(intention_id:, **)
                 result = intention_stack.resume(intention_id)
-                Legion::Logging.info "[volition] resume intention=#{intention_id} result=#{result}"
+                log.info "[volition] resume intention=#{intention_id} result=#{result}"
                 { status: result, intention_id: intention_id }
               end
 
@@ -95,8 +97,8 @@ module Legion
                 )
 
                 result = intention_stack.push(intention)
-                Legion::Logging.info "[volition] absorption intention formed: domains=#{domains.join(',')} " \
-                                     "neighbors=#{neighbors.size} salience=#{salience.round(2)} result=#{result}"
+                log.info "[volition] absorption intention formed: domains=#{domains.join(',')} " \
+                         "neighbors=#{neighbors.size} salience=#{salience.round(2)} result=#{result}"
 
                 {
                   success:      %i[pushed duplicate].include?(result),
@@ -151,6 +153,40 @@ module Legion
 
               def format_drives(drives)
                 drives.map { |k, v| "#{k}=#{v.round(2)}" }.join(' ')
+              end
+
+              def evaluate_proactive_outreach(tick_results, bond_state)
+                return nil unless bond_state.is_a?(Hash) && bond_state[:partner_bond]
+
+                partner = bond_state[:partner_bond]
+                return nil if partner[:style] == :avoidant
+
+                triggers = collect_proactive_triggers(tick_results, partner)
+                return nil if triggers.empty?
+
+                best = triggers.min_by { |t| Helpers::Constants::PRIORITY_ORDER.fetch(t[:priority], 99) }
+                { type: Helpers::Constants::PROACTIVE_INTENT_TYPE, trigger: best, all_triggers: triggers }
+              end
+
+              def collect_proactive_triggers(tick_results, partner)
+                triggers = []
+
+                insight = tick_results.dig(:dream_reflection, :insight)
+                triggers << { reason: :insight, content: insight, priority: :low } if insight.is_a?(String) && insight.length > 50
+
+                triggers << { reason: :check_in, content: nil, priority: :normal } if partner[:absence_exceeds_pattern]
+
+                (partner[:milestones_today] || []).each do |ms|
+                  desc = ms.is_a?(Hash) ? (ms[:description] || ms['description']) : ms.to_s
+                  triggers << { reason: :milestone, content: desc, priority: :low }
+                end
+
+                agenda = tick_results.dig(:agenda_formation, :agenda) || []
+                agenda.select { |a| a[:domain] == :partner }.each do |item|
+                  triggers << { reason: :curiosity, content: item[:question], priority: :low }
+                end
+
+                triggers
               end
             end
           end

@@ -42,6 +42,15 @@ module Legion
 
               # Intention states
               STATES = %i[active suspended completed expired].freeze
+
+              # Proactive outreach triggers
+              PROACTIVE_TRIGGERS = %i[insight check_in milestone curiosity].freeze
+
+              # Priority ordering for trigger selection (lower = higher priority)
+              PRIORITY_ORDER = { critical: 0, urgent: 1, normal: 2, low: 3, ambient: 4 }.freeze
+
+              # Intent type for proactive outreach
+              PROACTIVE_INTENT_TYPE = :proactive_outreach
             end
           end
         end

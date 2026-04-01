@@ -137,12 +137,12 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
     let(:bond_state) do
       {
         partner_bond: {
-          stage: :established,
-          strength: 0.72,
-          style: :secure,
-          health: 0.85,
+          stage:            :established,
+          strength:         0.72,
+          style:            :secure,
+          health:           0.85,
           milestones_today: [],
-          narrative: nil
+          narrative:        nil
         }
       }
     end
@@ -222,7 +222,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
     context 'when attachment style is avoidant' do
       let(:bond_state_avoidant) do
         bond_state.merge(partner_bond: bond_state[:partner_bond].merge(
-          style: :avoidant,
+          style:                   :avoidant,
           absence_exceeds_pattern: true
         ))
       end

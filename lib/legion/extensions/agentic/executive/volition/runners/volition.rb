@@ -32,12 +32,12 @@ module Legion
                                       "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
 
                 {
-                  drives:            drives,
-                  dominant_drive:    dominant,
-                  new_intentions:    pushed,
-                  expired:           expired,
-                  active_intentions: intention_stack.active_count,
-                  current_intention: format_intention(current),
+                  drives:             drives,
+                  dominant_drive:     dominant,
+                  new_intentions:     pushed,
+                  expired:            expired,
+                  active_intentions:  intention_stack.active_count,
+                  current_intention:  format_intention(current),
                   proactive_outreach: proactive
                 }
               end
@@ -161,6 +161,14 @@ module Legion
                 partner = bond_state[:partner_bond]
                 return nil if partner[:style] == :avoidant
 
+                triggers = collect_proactive_triggers(tick_results, partner)
+                return nil if triggers.empty?
+
+                best = triggers.min_by { |t| Helpers::Constants::PRIORITY_ORDER.fetch(t[:priority], 99) }
+                { type: Helpers::Constants::PROACTIVE_INTENT_TYPE, trigger: best, all_triggers: triggers }
+              end
+
+              def collect_proactive_triggers(tick_results, partner)
                 triggers = []
 
                 insight = tick_results.dig(:dream_reflection, :insight)
@@ -178,10 +186,7 @@ module Legion
                   triggers << { reason: :curiosity, content: item[:question], priority: :low }
                 end
 
-                return nil if triggers.empty?
-
-                best = triggers.min_by { |t| Helpers::Constants::PRIORITY_ORDER.fetch(t[:priority], 99) }
-                { type: Helpers::Constants::PROACTIVE_INTENT_TYPE, trigger: best, all_triggers: triggers }
+                triggers
               end
             end
           end

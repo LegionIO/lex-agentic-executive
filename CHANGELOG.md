@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.7] - 2026-03-31
+
+### Added
+- Proactive outreach evaluation in Volition `form_intentions`
+- 4 trigger types: insight, check_in, milestone, curiosity
+- Attachment style gating (avoidant suppresses proactive)
+- Priority-based trigger selection
+
 ## [0.1.6] - 2026-03-26
 
 ### Changed

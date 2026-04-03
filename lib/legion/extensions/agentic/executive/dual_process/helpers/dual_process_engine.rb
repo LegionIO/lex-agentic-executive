@@ -42,7 +42,7 @@ module Legion
 
               def execute_system_one(query:, domain:)
                 matching = find_matching_heuristic(query, domain)
-                start    = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                start    = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
 
                 if matching
                   matching.use!(success: true)
@@ -53,7 +53,7 @@ module Legion
                   response   = :no_heuristic
                 end
 
-                elapsed = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round
+                elapsed = ((::Process.clock_gettime(::Process::CLOCK_MONOTONIC) - start) * 1000).round
 
                 decision = Decision.new(
                   query:              query,
@@ -70,13 +70,13 @@ module Legion
               end
 
               def execute_system_two(query:, domain:, deliberation: {})
-                start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+                start = ::Process.clock_gettime(::Process::CLOCK_MONOTONIC)
                 @effort_budget = (@effort_budget - EFFORT_COST).clamp(0.0, MAX_EFFORT_BUDGET)
 
                 confidence = deliberation.fetch(:confidence, DEFAULT_CONFIDENCE + HEURISTIC_BOOST)
                                          .clamp(CONFIDENCE_FLOOR, CONFIDENCE_CEILING)
                 response   = deliberation.fetch(:response, :deliberated)
-                elapsed    = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - start) * 1000).round
+                elapsed    = ((::Process.clock_gettime(::Process::CLOCK_MONOTONIC) - start) * 1000).round
 
                 decision = Decision.new(
                   query:              query,

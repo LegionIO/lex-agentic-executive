@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.9] - 2026-04-03
+
+### Fixed
+- Use `::Process::CLOCK_MONOTONIC` instead of `Process::CLOCK_MONOTONIC` in DualProcessEngine to avoid resolving to `Legion::Process`
+
 ## [0.1.8] - 2026-04-03
 
 ### Changed

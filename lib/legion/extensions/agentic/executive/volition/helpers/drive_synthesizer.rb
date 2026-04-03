@@ -74,7 +74,7 @@ module Legion
                 gut = tick_results[:gut_instinct] || cognitive_state[:gut] || {}
                 emotion = tick_results[:emotional_evaluation] || {}
 
-                arousal = emotion[:arousal] || cognitive_state.dig(:emotion, :arousal) || 0.5
+                arousal = emotion[:arousal] || cognitive_state.dig(:emotion, :arousal) || 0.0
                 gut_signal = extract_gut_strength(gut)
 
                 ((arousal * 0.5) + (gut_signal * 0.5)).clamp(0.0, 1.0)
@@ -84,7 +84,9 @@ module Legion
                 pred = tick_results[:prediction_engine] || {}
                 pred_state = cognitive_state[:prediction] || {}
 
-                confidence = pred[:confidence] || pred_state[:confidence] || 0.5
+                return 0.0 if pred.empty? && pred_state.empty?
+
+                confidence = pred[:confidence] || pred_state[:confidence] || 1.0
                 pending = pred_state[:pending_count] || 0
 
                 confidence_gap = 1.0 - confidence
@@ -96,8 +98,10 @@ module Legion
                 mesh = cognitive_state[:mesh] || {}
                 trust = cognitive_state[:trust] || {}
 
+                return 0.0 if mesh.empty? && trust.empty?
+
                 peer_count = mesh[:peer_count] || 0
-                trust_level = trust[:avg_composite] || 0.5
+                trust_level = trust[:avg_composite] || 0.0
 
                 peer_factor = [peer_count / 5.0, 1.0].min
                 ((peer_factor * 0.4) + (trust_level * 0.6)).clamp(0.0, 1.0)
@@ -105,15 +109,15 @@ module Legion
 
               def extract_gut_strength(gut)
                 signal = gut[:signal]
-                return 0.3 unless signal
+                return 0.0 unless signal
 
                 case signal
                 when :alarm then 1.0
                 when :heightened then 0.7
                 when :explore   then 0.5
                 when :attend    then 0.4
-                when :calm      then 0.1
-                else 0.3
+                when :calm      then 0.05
+                else 0.0
                 end
               end
 

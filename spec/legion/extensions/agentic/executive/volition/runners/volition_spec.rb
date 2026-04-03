@@ -27,7 +27,8 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
     it 'handles empty inputs' do
       result = client.form_intentions(tick_results: {}, cognitive_state: {})
       expect(result[:drives]).to be_a(Hash)
-      expect(result[:active_intentions]).to be >= 0
+      expect(result[:active_intentions]).to eq(0)
+      expect(result[:current_intention]).to be_nil
     end
 
     it 'decays existing intentions over multiple ticks' do

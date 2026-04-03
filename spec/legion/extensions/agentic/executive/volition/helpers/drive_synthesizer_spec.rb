@@ -20,6 +20,14 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Helpers::DriveS
       )
       drives.each_value { |v| expect(v).to be_between(0.0, 1.0) }
     end
+
+    it 'does not fabricate urgency, epistemic, or social drive without evidence' do
+      drives = synth.synthesize(tick_results: {}, cognitive_state: {})
+
+      expect(drives[:urgency]).to eq(0.0)
+      expect(drives[:epistemic]).to eq(0.0)
+      expect(drives[:social]).to eq(0.0)
+    end
   end
 
   describe '.compute_curiosity_drive' do
@@ -91,9 +99,9 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Helpers::DriveS
     it 'maps gut signal symbols to numeric strength' do
       expect(synth.extract_gut_strength({ signal: :alarm })).to eq(1.0)
       expect(synth.extract_gut_strength({ signal: :heightened })).to eq(0.7)
-      expect(synth.extract_gut_strength({ signal: :calm })).to eq(0.1)
-      expect(synth.extract_gut_strength({ signal: :neutral })).to eq(0.3)
-      expect(synth.extract_gut_strength({})).to eq(0.3)
+      expect(synth.extract_gut_strength({ signal: :calm })).to eq(0.05)
+      expect(synth.extract_gut_strength({ signal: :neutral })).to eq(0.0)
+      expect(synth.extract_gut_strength({})).to eq(0.0)
     end
   end
 end

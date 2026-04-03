@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.8] - 2026-04-03
+
+### Changed
+- Fix drive synthesizer default values to avoid fabricating urgency, epistemic, and social drive without evidence
+- Return 0.0 (not 0.5) for arousal and trust when no signal is present
+- Short-circuit epistemic and social drive to 0.0 when prediction and mesh/trust state are empty
+- Lower calm gut signal from 0.1 to 0.05 and unknown signals from 0.3 to 0.0
+
 ## [0.1.7] - 2026-03-31
 
 ### Added

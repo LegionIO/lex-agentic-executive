@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- add success: true/false to all ProspectiveMemory runner methods to match LEX convention
+
 ## [0.1.9] - 2026-04-03
 
 ### Fixed

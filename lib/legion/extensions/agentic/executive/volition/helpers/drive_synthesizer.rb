@@ -33,7 +33,8 @@ module Legion
               def dominant_drive(drives)
                 return nil if drives.empty?
 
-                drives.max_by { |_, strength| strength }&.first
+                weighted = weighted_drives(drives)
+                weighted.max_by { |_, data| data[:weighted] }&.first
               end
 
               def generate_intentions(drives, cognitive_state: {})
@@ -74,7 +75,7 @@ module Legion
                 gut = tick_results[:gut_instinct] || cognitive_state[:gut] || {}
                 emotion = tick_results[:emotional_evaluation] || {}
 
-                arousal = emotion[:arousal] || cognitive_state.dig(:emotion, :arousal) || 0.0
+                arousal = gut[:arousal] || emotion[:arousal] || cognitive_state.dig(:emotion, :arousal) || 0.0
                 gut_signal = extract_gut_strength(gut)
 
                 ((arousal * 0.5) + (gut_signal * 0.5)).clamp(0.0, 1.0)

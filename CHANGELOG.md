@@ -4,6 +4,8 @@
 
 ### Fixed
 - add success: true/false to all ProspectiveMemory runner methods to match LEX convention
+- fix dominant_drive to use weighted scoring instead of raw strengths
+- fix compute_urgency_drive to read arousal from gut_instinct first
 
 ## [0.1.9] - 2026-04-03
 

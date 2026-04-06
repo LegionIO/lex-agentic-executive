@@ -71,9 +71,22 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Helpers::DriveS
   end
 
   describe '.dominant_drive' do
-    it 'returns the strongest drive' do
+    it 'returns the drive with highest weighted score' do
+      # curiosity: 0.8 * 0.25 = 0.20, urgency: 0.5 * 0.20 = 0.10
       drives = { curiosity: 0.8, corrective: 0.3, urgency: 0.5, epistemic: 0.2, social: 0.1 }
       expect(synth.dominant_drive(drives)).to eq(:curiosity)
+    end
+
+    it 'accounts for weights when raw scores are close' do
+      # curiosity: 0.5 * 0.25 = 0.125, urgency: 0.6 * 0.20 = 0.12
+      drives = { curiosity: 0.5, corrective: 0.0, urgency: 0.6, epistemic: 0.0, social: 0.0 }
+      expect(synth.dominant_drive(drives)).to eq(:curiosity)
+    end
+
+    it 'allows urgency to win when raw strength is much higher' do
+      # curiosity: 0.3 * 0.25 = 0.075, urgency: 0.9 * 0.20 = 0.18
+      drives = { curiosity: 0.3, corrective: 0.0, urgency: 0.9, epistemic: 0.0, social: 0.0 }
+      expect(synth.dominant_drive(drives)).to eq(:urgency)
     end
 
     it 'returns nil for empty drives' do

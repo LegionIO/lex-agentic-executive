@@ -318,6 +318,38 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
     end
   end
 
+  describe '#reprioritize!' do
+    let(:engine) { described_class.new }
+
+    before do
+      result = engine.add_goal(content: 'low priority task', domain: :general, priority: 0.3, parent_id: nil,
+                               deadline: nil)
+      engine.activate_goal(goal_id: result[:goal][:id])
+      result = engine.add_goal(content: 'safety monitor degraded', domain: :safety, priority: 0.5, parent_id: nil,
+                               deadline: nil)
+      engine.activate_goal(goal_id: result[:goal][:id])
+    end
+
+    it 'boosts goals matching the signal domain' do
+      safety_goal = engine.active_goals.find { |g| g.domain == :safety }
+      old_priority = safety_goal.priority
+      engine.reprioritize!(signal: { domain: :safety, urgency: :critical })
+      expect(safety_goal.priority).to be > old_priority
+    end
+
+    it 'does not affect goals in other domains' do
+      general_goal = engine.active_goals.find { |g| g.domain == :general }
+      old_priority = general_goal.priority
+      engine.reprioritize!(signal: { domain: :safety, urgency: :critical })
+      expect(general_goal.priority).to eq(old_priority)
+    end
+
+    it 'handles unknown domains gracefully' do
+      result = engine.reprioritize!(signal: { domain: :unknown, urgency: :low })
+      expect(result[:adjusted]).to eq(0)
+    end
+  end
+
   describe '#goal_report' do
     it 'reports total goal count' do
       3.times { engine.add_goal(content: 'goal') }

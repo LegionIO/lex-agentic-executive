@@ -14,6 +14,7 @@ module Legion
               def initialize
                 @goals         = {}
                 @root_goal_ids = []
+                @mutex         = Mutex.new
               end
 
               def add_goal(content:, parent_id: nil, domain: :general, priority: DEFAULT_PRIORITY, deadline: nil)
@@ -163,11 +164,49 @@ module Legion
                 active.sort_by { |g| -g.priority }.first(limit)
               end
 
+              URGENCY_BOOST = { critical: 0.3, high: 0.2, moderate: 0.1, low: 0.05 }.freeze
+
+              def reprioritize!(signal:)
+                domain = signal[:domain]&.to_sym
+                boost = URGENCY_BOOST[signal[:urgency]&.to_sym] || 0.05
+                adjusted = 0
+
+                @goals.each_value do |goal|
+                  next unless goal.domain == domain && goal.active?
+
+                  times = (boost / Constants::PRIORITY_BOOST).ceil
+                  times.times { goal.boost_priority! }
+                  adjusted += 1
+                end
+
+                { adjusted: adjusted, domain: domain, boost: boost }
+              end
+
               def decay_all_priorities!
                 inactive = @goals.values.reject { |g| g.status == :active }
                 inactive.each(&:decay_priority!)
                 Legion::Logging.debug "[goal_management] decay_all inactive=#{inactive.size}"
                 { decayed: inactive.size }
+              end
+
+              def update_from_task_event(task_id:, status:, result: nil)
+                @mutex.synchronize do
+                  goal = @goals.values.find { |g| g.task_id == task_id }
+                  return { found: false } unless goal
+
+                  case status
+                  when 'task.completed'
+                    goal.advance_progress!(1.0 - goal.progress)
+                    goal.complete! if goal.progress >= Constants::PROGRESS_THRESHOLD
+                    propagate_progress_to_parent(goal.id) if goal.parent_id
+                    { found: true, goal_id: goal.id, new_status: goal.status, progress: goal.progress }
+                  when 'task.exception', 'task.failed'
+                    goal.block!
+                    { found: true, goal_id: goal.id, new_status: :blocked, error: result }
+                  else
+                    { found: true, goal_id: goal.id, unhandled_status: status }
+                  end
+                end
               end
 
               def goal_report

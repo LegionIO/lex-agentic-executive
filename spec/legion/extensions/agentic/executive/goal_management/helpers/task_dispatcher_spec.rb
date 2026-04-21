@@ -60,7 +60,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
     context 'when Legion::Runner is available' do
       before do
         stub_const('Legion::Runner', Class.new do
-          def self.run(runner_class:, function:, args:, generate_task: true, check_subtask: true, **opts)
+          def self.run(**_opts)
             { success: true, status: 'task.completed', task_id: 'task-abc', result: {} }
           end
         end)
@@ -87,7 +87,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
 
       it 'sets success: false when runner does not return task.completed status' do
         stub_const('Legion::Runner', Class.new do
-          def self.run(runner_class:, function:, args:, generate_task: true, check_subtask: true, **opts)
+          def self.run(**_opts)
             { success: false, status: 'task.failed', task_id: nil, result: {} }
           end
         end)
@@ -117,7 +117,7 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
       context 'when client class is available' do
         before do
           client_double = instance_double('VolitionClient',
-                                         volition_status: { status: 'task.completed', task_id: 'task-xyz' })
+                                          volition_status: { status: 'task.completed', task_id: 'task-xyz' })
           client_class  = class_double('Legion::Extensions::Agentic::Executive::Volition::Client',
                                        new: client_double)
           stub_const('Legion::Extensions::Agentic::Executive::Volition::Client', client_class)

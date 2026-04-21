@@ -7,9 +7,10 @@ module Legion
         module Volition
           module Helpers
             class GoalBridge
-              def initialize(goal_client:)
+              def initialize(goal_client:, persistence: nil)
                 @goal_client = goal_client
-                @bridged_intentions = {}
+                @persistence = persistence || default_persistence
+                @bridged_intentions = @persistence&.load_bridge_state || {}
                 @mutex = Mutex.new
               end
 
@@ -29,10 +30,21 @@ module Legion
                   end
                 end
 
+                persist_bridge_state
                 result
               end
 
               private
+
+              def default_persistence
+                GoalManagement::Helpers::GoalPersistence.new
+              rescue StandardError
+                nil
+              end
+
+              def persist_bridge_state
+                @persistence&.save_bridge_state(@bridged_intentions)
+              end
 
               def bridge_one(intention)
                 return { status: :skipped } unless intention[:state] == :active

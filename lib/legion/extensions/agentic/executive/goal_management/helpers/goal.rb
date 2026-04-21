@@ -15,6 +15,24 @@ module Legion
                           :priority, :progress, :domain, :deadline,
                           :created_at, :updated_at, :task_id, :runner_mapping
 
+              def self.from_h(hash)
+                goal = allocate
+                goal.instance_variable_set(:@id, hash[:id])
+                goal.instance_variable_set(:@content, hash[:content])
+                goal.instance_variable_set(:@parent_id, hash[:parent_id])
+                goal.instance_variable_set(:@sub_goal_ids, hash[:sub_goal_ids] || [])
+                goal.instance_variable_set(:@status, hash[:status]&.to_sym || :proposed)
+                goal.instance_variable_set(:@priority, hash[:priority]&.to_f || 0.5)
+                goal.instance_variable_set(:@progress, hash[:progress].to_f)
+                goal.instance_variable_set(:@domain, hash[:domain]&.to_sym || :general)
+                goal.instance_variable_set(:@deadline, hash[:deadline])
+                goal.instance_variable_set(:@task_id, hash[:task_id])
+                goal.instance_variable_set(:@runner_mapping, hash[:runner_mapping])
+                goal.instance_variable_set(:@created_at, hash[:created_at] ? Time.parse(hash[:created_at].to_s) : Time.now)
+                goal.instance_variable_set(:@updated_at, hash[:updated_at] ? Time.parse(hash[:updated_at].to_s) : Time.now)
+                goal
+              end
+
               def initialize(content:, parent_id: nil, domain: :general, priority: DEFAULT_PRIORITY, deadline: nil)
                 @id             = SecureRandom.uuid
                 @content        = content

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'time'
 
 module Legion
   module Extensions
@@ -23,7 +24,7 @@ module Legion
                 goal.instance_variable_set(:@sub_goal_ids, hash[:sub_goal_ids] || [])
                 goal.instance_variable_set(:@status, hash[:status]&.to_sym || :proposed)
                 goal.instance_variable_set(:@priority, hash[:priority]&.to_f || 0.5)
-                goal.instance_variable_set(:@progress, hash[:progress].to_f)
+                goal.instance_variable_set(:@progress, (hash[:progress] || 0.0).to_f)
                 goal.instance_variable_set(:@domain, hash[:domain]&.to_sym || :general)
                 goal.instance_variable_set(:@deadline, hash[:deadline])
                 goal.instance_variable_set(:@task_id, hash[:task_id])

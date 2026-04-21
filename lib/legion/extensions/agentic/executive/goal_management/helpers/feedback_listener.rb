@@ -15,7 +15,10 @@ module Legion
               def handle_task_event(task_id:, status:, result: nil)
                 update = @engine.update_from_task_event(task_id: task_id, status: status, result: result)
                 goal_id = update[:goal_id] if update.is_a?(Hash)
-                log.info "[feedback_listener] task event task_id=#{task_id} goal_id=#{goal_id} new_status=#{status}"
+                new_status = update[:new_status] if update.is_a?(Hash)
+                unhandled_status = update[:unhandled_status] if update.is_a?(Hash)
+                log.info "[feedback_listener] task event task_id=#{task_id} goal_id=#{goal_id} " \
+                         "task_status=#{status} new_status=#{new_status} unhandled_status=#{unhandled_status}"
                 update
               end
 

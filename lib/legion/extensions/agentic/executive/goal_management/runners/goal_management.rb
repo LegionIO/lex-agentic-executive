@@ -172,12 +172,16 @@ module Legion
               def dispatch_leaf_goals(**)
                 dispatcher = Helpers::TaskDispatcher.new
                 engine.goals.each_value do |g|
-                  g.activate! if g.leaf? && g.status == :proposed
+                  engine.activate_goal(goal_id: g.id) if g.leaf? && g.status == :proposed
                 end
                 leaves  = engine.active_goals.select(&:leaf?)
                 results = leaves.reject(&:task_id).map do |goal|
                   dispatch = dispatcher.dispatch_goal(goal: goal.to_h)
-                  goal.assign_task!(task_id: dispatch[:task_id], runner_mapping: dispatch[:runner_mapping]) if dispatch[:dispatched] && dispatch[:task_id]
+                  if dispatch[:dispatched] && dispatch[:task_id]
+                    engine.assign_task_to_goal(goal_id:        goal.id,
+                                               task_id:        dispatch[:task_id],
+                                               runner_mapping: dispatch[:runner_mapping])
+                  end
                   { goal_id: goal.id, dispatch: dispatch }
                 end
                 dispatched_count = results.count { |r| r[:dispatch][:dispatched] }

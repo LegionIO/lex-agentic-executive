@@ -185,11 +185,22 @@ module Legion
 
                   times = (boost / Constants::PRIORITY_BOOST).ceil
                   times.times { goal.boost_priority! }
+                  persist_goal(goal)
                   adjusted += 1
                 end
 
                 log.info "[goal_engine] reprioritize! domain=#{domain} boost=#{boost} adjusted=#{adjusted}"
                 { adjusted: adjusted, domain: domain, boost: boost }
+              end
+
+              def assign_task_to_goal(goal_id:, task_id:, runner_mapping:)
+                goal = @goals[goal_id]
+                return { success: false, error: "goal #{goal_id} not found" } unless goal
+
+                goal.assign_task!(task_id: task_id, runner_mapping: runner_mapping)
+                persist_goal(goal)
+                log.debug "[goal_management] assign_task goal=#{goal_id} task_id=#{task_id}"
+                { success: true, goal_id: goal_id, task_id: task_id }
               end
 
               def decay_all_priorities!
@@ -287,6 +298,7 @@ module Legion
                 avg = children.sum(&:progress).round(10) / children.size
                 parent.instance_variable_set(:@progress, avg.round(10))
                 parent.instance_variable_set(:@updated_at, Time.now)
+                persist_goal(parent)
                 propagate_progress_to_parent(goal.parent_id)
               end
 

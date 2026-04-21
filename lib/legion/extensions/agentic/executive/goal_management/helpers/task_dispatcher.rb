@@ -41,7 +41,8 @@ module Legion
                 class_name = mapping[:runner_class] || mapping[:client_class]
                 Kernel.const_get(class_name)
                 true
-              rescue NameError
+              rescue NameError => e
+                log.debug "[task_dispatcher] runner not loaded: #{e.message}"
                 false
               end
 

@@ -7,7 +7,9 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
     stub_const('Legion::Cache', Class.new do
       def self.connected? = true
       def self.get(key) = (@store ||= {})[key]
-      def self.set_sync(key, value, ttl: nil) = ((@store ||= {})[key] = value) # rubocop:disable Lint/UnusedMethodArgument
+      def self.set(key, value, **_opts) = ((@store ||= {})[key] = value)
+      def self.set_sync(key, value, **_opts) = ((@store ||= {})[key] = value)
+      def self.delete(key, **_opts) = (@store ||= {}).delete(key)
       def self.delete_sync(key) = (@store ||= {}).delete(key)
       def self.flush = (@store = {})
     end)

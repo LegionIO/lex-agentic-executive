@@ -7,6 +7,8 @@ module Legion
         module GoalManagement
           module Helpers
             module Decomposer
+              extend Legion::JSON::Helper if defined?(Legion::JSON::Helper)
+
               module_function
 
               def log
@@ -82,7 +84,7 @@ module Legion
 
               def parse_sub_goals(content, domain)
                 cleaned = content.gsub(/```(?:json)?\s*\n?/, '').strip
-                data = Legion::JSON.load(cleaned)
+                data = json_load(cleaned)
                 return nil unless data.is_a?(Array) && !data.empty?
 
                 data.map do |sg|

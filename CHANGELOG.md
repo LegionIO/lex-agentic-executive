@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0] - 2026-04-21
+### Added
+- **Autonomous Goal-Setting Pipeline (G1-G5)** — GAIA can now convert intentions into goals, decompose them, dispatch execution, and receive feedback with no human intervention
+- `Volition::Helpers::GoalBridge` — converts volition intentions into proposed goals via GoalManagement (G1)
+- `GoalManagement::Helpers::Decomposer` — autonomous goal decomposition with domain-aware heuristic templates and optional LLM strategy (G2)
+- `GoalManagement::Helpers::TaskDispatcher` — dispatches leaf goals to runners via `Legion::Runner.run` or Client instantiation, with per-domain argument builders and load-order guards (G3)
+- `GoalEngine#reprioritize!` — event-driven priority adjustment with urgency-calibrated boost levels (G4)
+- `GoalManagement::Helpers::FeedbackListener` — subscribes to `Legion::Events` for `task.completed`/`task.failed` and updates goal progress/status (G5)
+- `GoalEngine#update_from_task_event` — thread-safe (Mutex) goal status update from task completion events
+- `Goal#assign_task!` — associates a dispatched task_id and runner_mapping with a goal
+- Auto-activation of proposed leaf goals before dispatch
+- Auto-start of FeedbackListener on GoalManagement::Client initialization
+
 ## [0.1.12] - 2026-04-15
 ### Changed
 - Set `mcp_tools?`, `mcp_tools_deferred?`, and `transport_required?` to `false` — internal cognitive pipeline extension

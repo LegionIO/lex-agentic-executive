@@ -13,7 +13,10 @@ module Legion
               end
 
               def handle_task_event(task_id:, status:, result: nil)
-                @engine.update_from_task_event(task_id: task_id, status: status, result: result)
+                update = @engine.update_from_task_event(task_id: task_id, status: status, result: result)
+                goal_id = update[:goal_id] if update.is_a?(Hash)
+                log.info "[feedback_listener] task event task_id=#{task_id} goal_id=#{goal_id} new_status=#{status}"
+                update
               end
 
               def start_listening
@@ -41,6 +44,12 @@ module Legion
 
               def listening?
                 @listening
+              end
+
+              private
+
+              def log
+                Legion::Logging
               end
             end
           end

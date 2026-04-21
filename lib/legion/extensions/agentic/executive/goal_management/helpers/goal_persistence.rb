@@ -22,7 +22,8 @@ module Legion
                 Legion::Cache.set_sync(key, serialize(goal_hash), ttl: GOAL_TTL)
                 update_index(goal_hash[:id], :add)
                 true
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#save_goal: #{e.message}"
                 false
               end
 
@@ -33,7 +34,8 @@ module Legion
                 return nil unless raw
 
                 deserialize(raw)
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#load_goal: #{e.message}"
                 nil
               end
 
@@ -43,7 +45,8 @@ module Legion
                 Legion::Cache.delete_sync(goal_key(id))
                 update_index(id, :remove)
                 true
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#delete_goal: #{e.message}"
                 false
               end
 
@@ -52,7 +55,8 @@ module Legion
 
                 goals_hash.each_value { |g| save_goal(g.is_a?(Hash) ? g : g.to_h) }
                 true
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#save_all: #{e.message}"
                 false
               end
 
@@ -62,11 +66,14 @@ module Legion
                 ids = load_index
                 return {} if ids.empty?
 
-                ids.each_with_object({}) do |id, result|
+                goals = ids.each_with_object({}) do |id, result|
                   goal = load_goal(id)
                   result[id] = goal if goal
                 end
-              rescue StandardError
+                log.info "[goal_persistence] rehydrated #{goals.size} goals from cache"
+                goals
+              rescue StandardError => e
+                log.error "GoalPersistence#load_all: #{e.message}"
                 {}
               end
 
@@ -75,7 +82,8 @@ module Legion
 
                 Legion::Cache.set_sync(bridge_key, serialize(bridge_hash), ttl: GOAL_TTL)
                 true
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#save_bridge_state: #{e.message}"
                 false
               end
 
@@ -86,11 +94,16 @@ module Legion
                 return {} unless raw
 
                 deserialize(raw)
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#load_bridge_state: #{e.message}"
                 {}
               end
 
               private
+
+              def log
+                Legion::Logging
+              end
 
               def cache_available?
                 defined?(Legion::Cache) && Legion::Cache.connected?
@@ -114,19 +127,21 @@ module Legion
                 return [] unless raw
 
                 deserialize(raw)
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalPersistence#load_index: #{e.message}"
                 []
               end
 
               def serialize(obj)
-                ::JSON.generate(obj, symbolize_names: false)
+                Legion::JSON.dump(obj)
               end
 
               def deserialize(raw)
                 return raw if raw.is_a?(Hash) || raw.is_a?(Array)
 
-                ::JSON.parse(raw, symbolize_names: true)
-              rescue ::JSON::ParserError
+                Legion::JSON.load(raw)
+              rescue StandardError => e
+                log.error "GoalPersistence#deserialize: #{e.message}"
                 nil
               end
             end

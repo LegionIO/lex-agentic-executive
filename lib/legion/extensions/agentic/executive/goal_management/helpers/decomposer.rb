@@ -9,6 +9,10 @@ module Legion
             module Decomposer
               module_function
 
+              def log
+                Legion::Logging
+              end
+
               DOMAIN_TEMPLATES = {
                 safety:     ->(c) { ["diagnose: #{c}", "implement fix for: #{c}", "verify health after: #{c}"] },
                 cognition:  ->(c) { ["analyze gaps in: #{c}", "design approach for: #{c}", "validate: #{c}"] },
@@ -23,8 +27,10 @@ module Legion
                                            else
                                              [decompose_heuristic(goal), :heuristic]
                                            end
+                log.info "[decomposer] decomposed goal=#{goal[:id]} strategy=#{strategy_used}"
                 { success: true, sub_goals: sub_goals, strategy_used: strategy_used }
               rescue StandardError => e
+                log.error "Decomposer: #{e.message}"
                 { success: false, error: e.message }
               end
 
@@ -43,7 +49,8 @@ module Legion
                   caller: { extension: 'lex-agentic-executive', operation: 'decompose' }
                 ).ask(prompt)
                 parse_sub_goals(response.content, goal[:domain])
-              rescue StandardError
+              rescue StandardError => e
+                log.error "Decomposer#decompose_with_llm: #{e.message}"
                 nil
               end
 
@@ -75,7 +82,7 @@ module Legion
 
               def parse_sub_goals(content, domain)
                 cleaned = content.gsub(/```(?:json)?\s*\n?/, '').strip
-                data = ::JSON.parse(cleaned, symbolize_names: true)
+                data = Legion::JSON.load(cleaned)
                 return nil unless data.is_a?(Array) && !data.empty?
 
                 data.map do |sg|
@@ -85,7 +92,8 @@ module Legion
                     priority: (sg[:priority] || 0.5).to_f.clamp(0.0, 1.0)
                   }
                 end
-              rescue ::JSON::ParserError
+              rescue StandardError => e
+                log.error "Decomposer#parse_sub_goals: #{e.message}"
                 nil
               end
             end

@@ -31,7 +31,7 @@ module Legion
 
                 execute_dispatch(goal: goal, mapping: mapping)
               rescue StandardError => e
-                Legion::Logging.error "[task_dispatcher] dispatch error goal=#{goal[:id]} #{e.message}"
+                log.error "[task_dispatcher] dispatch error goal=#{goal[:id]} #{e.message}"
                 { dispatched: false, error: e.message, goal_id: goal[:id] }
               end
 
@@ -59,7 +59,7 @@ module Legion
                 task_id    = result[:task_id]
                 runner_key = mapping[:runner_class] || mapping[:client_class]
 
-                Legion::Logging.debug "[task_dispatcher] dispatched goal=#{goal[:id]} runner=#{runner_key} success=#{success}"
+                log.info "[task_dispatcher] dispatched goal=#{goal[:id]} runner=#{runner_key} function=#{function}"
 
                 {
                   dispatched:     true,
@@ -86,8 +86,12 @@ module Legion
                 client.send(function, **args)
               end
 
+              def log
+                Legion::Logging
+              end
+
               def unroutable(goal, domain)
-                Legion::Logging.debug "[task_dispatcher] no runner for domain=#{domain} goal=#{goal[:id]}"
+                log.debug "[task_dispatcher] no runner for domain=#{domain} goal=#{goal[:id]}"
                 { dispatched: false, reason: :no_runner, domain: domain, goal_id: goal[:id] }
               end
             end

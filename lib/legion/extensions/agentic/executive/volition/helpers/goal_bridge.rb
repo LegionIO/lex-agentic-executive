@@ -31,14 +31,20 @@ module Legion
                 end
 
                 persist_bridge_state
+                log.info "[goal_bridge] bridged #{result[:bridged]} intentions to goals"
                 result
               end
 
               private
 
+              def log
+                Legion::Logging
+              end
+
               def default_persistence
                 GoalManagement::Helpers::GoalPersistence.new
-              rescue StandardError
+              rescue StandardError => e
+                log.error "GoalBridge: #{e.message}"
                 nil
               end
 

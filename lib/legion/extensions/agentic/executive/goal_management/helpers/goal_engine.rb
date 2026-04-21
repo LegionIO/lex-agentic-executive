@@ -40,7 +40,7 @@ module Legion
                 end
 
                 persist_goal(goal)
-                Legion::Logging.debug "[goal_management] add_goal id=#{goal.id} domain=#{domain} priority=#{priority.round(2)}"
+                log.debug "[goal_management] add_goal id=#{goal.id} domain=#{domain} priority=#{priority.round(2)}"
                 { success: true, goal: goal.to_h }
               end
 
@@ -59,7 +59,7 @@ module Legion
                 end
 
                 failures = created.reject { |r| r[:success] }
-                Legion::Logging.debug "[goal_management] decompose parent=#{goal_id} created=#{created.size - failures.size} failed=#{failures.size}"
+                log.debug "[goal_management] decompose parent=#{goal_id} created=#{created.size - failures.size} failed=#{failures.size}"
                 { success: true, parent_id: goal_id, created: created, failures: failures.size }
               end
 
@@ -69,7 +69,7 @@ module Legion
 
                 activated = goal.activate!
                 persist_goal(goal) if activated
-                Legion::Logging.debug "[goal_management] activate goal=#{goal_id} result=#{activated}"
+                log.debug "[goal_management] activate goal=#{goal_id} result=#{activated}"
                 { success: activated, goal_id: goal_id, status: goal.status }
               end
 
@@ -79,7 +79,7 @@ module Legion
 
                 completed = goal.complete!
                 persist_goal(goal) if completed
-                Legion::Logging.debug "[goal_management] complete goal=#{goal_id} result=#{completed}"
+                log.debug "[goal_management] complete goal=#{goal_id} result=#{completed}"
                 { success: completed, goal_id: goal_id, status: goal.status }
               end
 
@@ -89,7 +89,7 @@ module Legion
 
                 abandoned = goal.abandon!
                 persist_goal(goal) if abandoned
-                Legion::Logging.debug "[goal_management] abandon goal=#{goal_id} result=#{abandoned}"
+                log.debug "[goal_management] abandon goal=#{goal_id} result=#{abandoned}"
                 { success: abandoned, goal_id: goal_id, status: goal.status }
               end
 
@@ -99,7 +99,7 @@ module Legion
 
                 blocked = goal.block!
                 persist_goal(goal) if blocked
-                Legion::Logging.debug "[goal_management] block goal=#{goal_id} result=#{blocked}"
+                log.debug "[goal_management] block goal=#{goal_id} result=#{blocked}"
                 { success: blocked, goal_id: goal_id, status: goal.status }
               end
 
@@ -109,7 +109,7 @@ module Legion
 
                 unblocked = goal.unblock!
                 persist_goal(goal) if unblocked
-                Legion::Logging.debug "[goal_management] unblock goal=#{goal_id} result=#{unblocked}"
+                log.debug "[goal_management] unblock goal=#{goal_id} result=#{unblocked}"
                 { success: unblocked, goal_id: goal_id, status: goal.status }
               end
 
@@ -120,7 +120,7 @@ module Legion
                 goal.advance_progress!(amount)
                 propagate_progress_to_parent(goal_id)
                 persist_goal(goal)
-                Legion::Logging.debug "[goal_management] advance_progress goal=#{goal_id} progress=#{goal.progress.round(2)}"
+                log.debug "[goal_management] advance_progress goal=#{goal_id} progress=#{goal.progress.round(2)}"
                 { success: true, goal_id: goal_id, progress: goal.progress }
               end
 
@@ -141,7 +141,7 @@ module Legion
                 conflicts = raw.select { |c| c[:conflict_score] > 0.0 }
                                .sort_by { |c| -c[:conflict_score] }
 
-                Legion::Logging.debug "[goal_management] detect_conflicts goal=#{goal_id} conflicts=#{conflicts.size}"
+                log.debug "[goal_management] detect_conflicts goal=#{goal_id} conflicts=#{conflicts.size}"
                 { success: true, goal_id: goal_id, conflicts: conflicts, count: conflicts.size }
               end
 
@@ -188,13 +188,14 @@ module Legion
                   adjusted += 1
                 end
 
+                log.info "[goal_engine] reprioritize! domain=#{domain} boost=#{boost} adjusted=#{adjusted}"
                 { adjusted: adjusted, domain: domain, boost: boost }
               end
 
               def decay_all_priorities!
                 inactive = @goals.values.reject { |g| g.status == :active }
                 inactive.each(&:decay_priority!)
-                Legion::Logging.debug "[goal_management] decay_all inactive=#{inactive.size}"
+                log.debug "[goal_management] decay_all inactive=#{inactive.size}"
                 { decayed: inactive.size }
               end
 
@@ -209,10 +210,12 @@ module Legion
                     goal.complete! if goal.progress >= Constants::PROGRESS_THRESHOLD
                     propagate_progress_to_parent(goal.id) if goal.parent_id
                     persist_goal(goal)
+                    log.info "[goal_engine] goal status change goal=#{goal.id} transition=completed"
                     { found: true, goal_id: goal.id, new_status: goal.status, progress: goal.progress }
                   when 'task.exception', 'task.failed'
                     goal.block!
                     persist_goal(goal)
+                    log.info "[goal_engine] goal status change goal=#{goal.id} transition=blocked"
                     { found: true, goal_id: goal.id, new_status: :blocked, error: result }
                   else
                     { found: true, goal_id: goal.id, unhandled_status: status }
@@ -242,6 +245,10 @@ module Legion
 
               private
 
+              def log
+                Legion::Logging
+              end
+
               def persist_goal(goal)
                 @persistence.save_goal(goal.to_h)
               end
@@ -255,8 +262,9 @@ module Legion
                   @goals[id] = goal
                   @root_goal_ids << id if goal.root?
                 end
+                log.info "[goal_engine] rehydrated #{cached.size} goals from cache"
               rescue StandardError => e
-                Legion::Logging.warn("Goal rehydration failed: #{e.message}") if defined?(Legion::Logging)
+                log.error "GoalEngine: rehydration failed: #{e.message}"
               end
 
               def depth_of(goal_id, current_depth = 0)

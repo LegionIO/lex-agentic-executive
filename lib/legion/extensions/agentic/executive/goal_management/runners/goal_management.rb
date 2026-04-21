@@ -28,6 +28,20 @@ module Legion
                 { success: false, error: e.message }
               end
 
+              def auto_decompose_goal(goal_id:, strategy: :heuristic, **)
+                goal_data = engine.goals[goal_id]
+                return { success: false, error: :not_found } unless goal_data
+
+                decomp = Helpers::Decomposer.decompose(goal: goal_data.to_h, strategy: strategy)
+                return decomp unless decomp[:success]
+
+                result = engine.decompose(goal_id: goal_id, sub_goals: decomp[:sub_goals])
+                result.merge(strategy_used: decomp[:strategy_used])
+              rescue StandardError => e
+                Legion::Logging.error e.message if defined?(Legion::Logging)
+                { success: false, error: e.message }
+              end
+
               def activate_goal(goal_id:, **)
                 Legion::Logging.debug "[goal_management] runner activate_goal id=#{goal_id}"
                 engine.activate_goal(goal_id: goal_id)
@@ -155,10 +169,48 @@ module Legion
                 { success: false, error: e.message }
               end
 
+              def dispatch_leaf_goals(**)
+                dispatcher = Helpers::TaskDispatcher.new
+                engine.goals.each_value do |g|
+                  g.activate! if g.leaf? && g.status == :proposed
+                end
+                leaves  = engine.active_goals.select(&:leaf?)
+                results = leaves.reject(&:task_id).map do |goal|
+                  dispatch = dispatcher.dispatch_goal(goal: goal.to_h)
+                  goal.assign_task!(task_id: dispatch[:task_id], runner_mapping: dispatch[:runner_mapping]) if dispatch[:dispatched] && dispatch[:task_id]
+                  { goal_id: goal.id, dispatch: dispatch }
+                end
+                dispatched_count = results.count { |r| r[:dispatch][:dispatched] }
+                Legion::Logging.debug "[goal_management] dispatch_leaf_goals dispatched=#{dispatched_count} total=#{results.size}"
+                { success: true, dispatched: dispatched_count, total: results.size, results: results }
+              rescue StandardError => e
+                Legion::Logging.error "[goal_management] dispatch_leaf_goals error: #{e.message}"
+                { success: false, error: e.message }
+              end
+
+              def update_goal_from_task(task_id:, status:, result: nil, **)
+                engine.update_from_task_event(task_id: task_id, status: status, result: result)
+              rescue StandardError => e
+                Legion::Logging.error(e.message) if defined?(Legion::Logging)
+                { success: false, error: e.message }
+              end
+
+              def start_feedback_listener(**)
+                feedback_listener.start_listening
+                { success: true, listening: feedback_listener.listening? }
+              rescue StandardError => e
+                Legion::Logging.error(e.message) if defined?(Legion::Logging)
+                { success: false, error: e.message }
+              end
+
               private
 
               def engine
                 @engine ||= Helpers::GoalEngine.new
+              end
+
+              def feedback_listener
+                @feedback_listener ||= Helpers::FeedbackListener.new(engine: engine)
               end
             end
           end

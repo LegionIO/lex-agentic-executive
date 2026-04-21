@@ -4,6 +4,8 @@ require 'legion/extensions/agentic/executive/goal_management/version'
 require 'legion/extensions/agentic/executive/goal_management/helpers/constants'
 require 'legion/extensions/agentic/executive/goal_management/helpers/goal'
 require 'legion/extensions/agentic/executive/goal_management/helpers/goal_engine'
+require 'legion/extensions/agentic/executive/goal_management/helpers/task_dispatcher'
+require 'legion/extensions/agentic/executive/goal_management/helpers/decomposer'
 require 'legion/extensions/agentic/executive/goal_management/runners/goal_management'
 require 'legion/extensions/agentic/executive/goal_management/client'
 

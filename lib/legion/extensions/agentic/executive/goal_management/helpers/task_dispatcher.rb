@@ -27,7 +27,7 @@ module Legion
                 mapping = DOMAIN_RUNNERS[domain]
 
                 return unroutable(goal, domain) unless mapping
-                return unroutable(goal, domain) unless runner_class_loaded?(mapping)
+                return unroutable_not_loaded(goal, domain) unless runner_class_loaded?(mapping)
 
                 execute_dispatch(goal: goal, mapping: mapping)
               rescue StandardError => e
@@ -94,6 +94,11 @@ module Legion
               def unroutable(goal, domain)
                 log.debug "[task_dispatcher] no runner for domain=#{domain} goal=#{goal[:id]}"
                 { dispatched: false, reason: :no_runner, domain: domain, goal_id: goal[:id] }
+              end
+
+              def unroutable_not_loaded(goal, domain)
+                log.debug "[task_dispatcher] runner not loaded for domain=#{domain} goal=#{goal[:id]}"
+                { dispatched: false, reason: :runner_not_loaded, domain: domain, goal_id: goal[:id] }
               end
             end
           end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'legion/extensions/agentic/executive/goal_management/helpers/goal_persistence'
+
 module Legion
   module Extensions
     module Agentic

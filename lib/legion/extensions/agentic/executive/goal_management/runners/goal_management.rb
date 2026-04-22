@@ -216,6 +216,10 @@ module Legion
               def feedback_listener
                 @feedback_listener ||= Helpers::FeedbackListener.new(engine: engine)
               end
+
+              def log
+                Legion::Logging
+              end
             end
           end
         end

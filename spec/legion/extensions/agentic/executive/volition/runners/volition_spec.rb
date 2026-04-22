@@ -289,4 +289,30 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Runners::Voliti
       expect(%i[pushed duplicate]).to include(second[:result])
     end
   end
+
+  describe '.form_intentions with goal bridging' do
+    let(:goal_client) { Legion::Extensions::Agentic::Executive::GoalManagement::Client.new }
+    let(:bridge) { Legion::Extensions::Agentic::Executive::Volition::Helpers::GoalBridge.new(goal_client: goal_client) }
+    let(:client) { Legion::Extensions::Agentic::Executive::Volition::Client.new(goal_bridge: bridge) }
+
+    let(:tick_results) do
+      { working_memory_integration: { curiosity_intensity: 0.7, active_wonders: 3 } }
+    end
+    let(:cognitive_state) do
+      { curiosity: { intensity: 0.7, active_count: 3, top_question: 'Why?' } }
+    end
+
+    it 'bridges new intentions to goals' do
+      result = client.form_intentions(tick_results: tick_results, cognitive_state: cognitive_state)
+      expect(result).to have_key(:bridge_result)
+      expect(result[:bridge_result][:bridged]).to be >= 0
+    end
+
+    it 'works without a goal bridge configured' do
+      client_no_bridge = Legion::Extensions::Agentic::Executive::Volition::Client.new
+      result = client_no_bridge.form_intentions(tick_results: tick_results, cognitive_state: cognitive_state)
+      expect(result).to have_key(:drives)
+      expect(result).not_to have_key(:bridge_result)
+    end
+  end
 end

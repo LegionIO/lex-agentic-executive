@@ -17,10 +17,10 @@ module Legion
                 )
 
                 new_intentions = Helpers::DriveSynthesizer.generate_intentions(drives, cognitive_state: cognitive_state)
-                pushed = 0
+                pushed_intentions = []
                 new_intentions.each do |intention|
-                  result = intention_stack.push(intention)
-                  pushed += 1 if result == :pushed
+                  outcome = intention_stack.push(intention)
+                  pushed_intentions << intention if outcome == :pushed
                 end
 
                 expired = intention_stack.decay_all
@@ -28,18 +28,25 @@ module Legion
                 current = intention_stack.top
                 proactive = evaluate_proactive_outreach(tick_results, bond_state)
 
-                log.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed} expired=#{expired} " \
+                log.debug "[volition] drives=#{format_drives(drives)} pushed=#{pushed_intentions.size} expired=#{expired} " \
                           "active=#{intention_stack.active_count} top=#{current&.dig(:goal)}"
 
-                {
+                result = {
                   drives:             drives,
                   dominant_drive:     dominant,
-                  new_intentions:     pushed,
+                  new_intentions:     pushed_intentions.map { |i| format_intention(i) },
                   expired:            expired,
                   active_intentions:  intention_stack.active_count,
                   current_intention:  format_intention(current),
                   proactive_outreach: proactive
                 }
+
+                if defined?(@goal_bridge) && @goal_bridge
+                  bridge_result = @goal_bridge.bridge_intentions(pushed_intentions)
+                  result[:bridge_result] = bridge_result
+                end
+
+                result
               end
 
               def current_intention(**)

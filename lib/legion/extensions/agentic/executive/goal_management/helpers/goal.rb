@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'securerandom'
+require 'time'
 
 module Legion
   module Extensions
@@ -13,20 +14,40 @@ module Legion
 
               attr_reader :id, :content, :parent_id, :sub_goal_ids, :status,
                           :priority, :progress, :domain, :deadline,
-                          :created_at, :updated_at
+                          :created_at, :updated_at, :task_id, :runner_mapping
+
+              def self.from_h(hash)
+                goal = allocate
+                goal.instance_variable_set(:@id, hash[:id])
+                goal.instance_variable_set(:@content, hash[:content])
+                goal.instance_variable_set(:@parent_id, hash[:parent_id])
+                goal.instance_variable_set(:@sub_goal_ids, hash[:sub_goal_ids] || [])
+                goal.instance_variable_set(:@status, hash[:status]&.to_sym || :proposed)
+                goal.instance_variable_set(:@priority, hash[:priority]&.to_f || 0.5)
+                goal.instance_variable_set(:@progress, (hash[:progress] || 0.0).to_f)
+                goal.instance_variable_set(:@domain, hash[:domain]&.to_sym || :general)
+                goal.instance_variable_set(:@deadline, hash[:deadline])
+                goal.instance_variable_set(:@task_id, hash[:task_id])
+                goal.instance_variable_set(:@runner_mapping, hash[:runner_mapping])
+                goal.instance_variable_set(:@created_at, hash[:created_at] ? Time.parse(hash[:created_at].to_s) : Time.now)
+                goal.instance_variable_set(:@updated_at, hash[:updated_at] ? Time.parse(hash[:updated_at].to_s) : Time.now)
+                goal
+              end
 
               def initialize(content:, parent_id: nil, domain: :general, priority: DEFAULT_PRIORITY, deadline: nil)
-                @id           = SecureRandom.uuid
-                @content      = content
-                @parent_id    = parent_id
-                @sub_goal_ids = []
-                @status       = :proposed
-                @priority     = priority.clamp(0.0, 1.0)
-                @progress     = 0.0
-                @domain       = domain
-                @deadline     = deadline
-                @created_at   = Time.now
-                @updated_at   = Time.now
+                @id             = SecureRandom.uuid
+                @content        = content
+                @parent_id      = parent_id
+                @sub_goal_ids   = []
+                @status         = :proposed
+                @priority       = priority.clamp(0.0, 1.0)
+                @progress       = 0.0
+                @domain         = domain
+                @deadline       = deadline
+                @created_at     = Time.now
+                @updated_at     = Time.now
+                @task_id        = nil
+                @runner_mapping = nil
               end
 
               def activate!
@@ -88,6 +109,12 @@ module Legion
                 @updated_at = Time.now
               end
 
+              def assign_task!(task_id:, runner_mapping:)
+                @task_id        = task_id
+                @runner_mapping = runner_mapping
+                @updated_at     = Time.now
+              end
+
               def add_sub_goal(goal_id)
                 @sub_goal_ids << goal_id unless @sub_goal_ids.include?(goal_id)
               end
@@ -140,6 +167,8 @@ module Legion
                   overdue:        overdue?,
                   root:           root?,
                   leaf:           leaf?,
+                  task_id:        @task_id,
+                  runner_mapping: @runner_mapping,
                   created_at:     @created_at,
                   updated_at:     @updated_at
                 }

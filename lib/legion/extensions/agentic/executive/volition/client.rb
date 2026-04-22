@@ -4,6 +4,7 @@ require 'legion/extensions/agentic/executive/volition/helpers/constants'
 require 'legion/extensions/agentic/executive/volition/helpers/intention'
 require 'legion/extensions/agentic/executive/volition/helpers/intention_stack'
 require 'legion/extensions/agentic/executive/volition/helpers/drive_synthesizer'
+require 'legion/extensions/agentic/executive/volition/helpers/goal_bridge'
 require 'legion/extensions/agentic/executive/volition/runners/volition'
 
 module Legion
@@ -16,8 +17,9 @@ module Legion
 
             attr_reader :intention_stack
 
-            def initialize(stack: nil, **)
+            def initialize(stack: nil, goal_bridge: nil, **)
               @intention_stack = stack || Helpers::IntentionStack.new
+              @goal_bridge = goal_bridge
             end
           end
         end

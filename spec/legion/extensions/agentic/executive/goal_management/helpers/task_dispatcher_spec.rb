@@ -80,6 +80,14 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
         expect(result[:runner_mapping]).to eq('Legion::Extensions::MindGrowth::Runners::Monitor')
       end
 
+      it 'dispatches cognition goals to the current MindGrowth analyzer runner' do
+        stub_const('Legion::Extensions::MindGrowth::Runners::Analyzer', Module.new)
+        result = dispatcher.dispatch_goal(goal: goal_hash.merge(domain: :cognition))
+
+        expect(result[:dispatched]).to be true
+        expect(result[:runner_mapping]).to eq('Legion::Extensions::MindGrowth::Runners::Analyzer')
+      end
+
       it 'includes goal_id in the response' do
         result = dispatcher.dispatch_goal(goal: goal_hash)
         expect(result[:goal_id]).to eq('goal-123')

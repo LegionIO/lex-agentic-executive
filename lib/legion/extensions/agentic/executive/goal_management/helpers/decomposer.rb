@@ -48,9 +48,10 @@ module Legion
 
                 prompt   = build_decomposition_prompt(goal)
                 response = Legion::LLM.chat(
-                  caller: { extension: 'lex-agentic-executive', operation: 'decompose' }
-                ).ask(prompt)
-                parse_sub_goals(response.content, goal[:domain])
+                  message: prompt,
+                  caller:  { extension: 'lex-agentic-executive', operation: 'decompose' }
+                )
+                parse_sub_goals(extract_response_content(response, prompt), goal[:domain])
               rescue StandardError => e
                 log.error "Decomposer#decompose_with_llm: #{e.message}"
                 nil
@@ -83,6 +84,8 @@ module Legion
               end
 
               def parse_sub_goals(content, domain)
+                return nil unless content
+
                 cleaned = content.gsub(/```(?:json)?\s*\n?/, '').strip
                 data = json_load(cleaned)
                 return nil unless data.is_a?(Array) && !data.empty?
@@ -97,6 +100,22 @@ module Legion
               rescue StandardError => e
                 log.error "Decomposer#parse_sub_goals: #{e.message}"
                 nil
+              end
+
+              def extract_response_content(response, prompt)
+                return response.strip if response.is_a?(String)
+                return response.content if response.respond_to?(:content)
+
+                if response.respond_to?(:ask)
+                  asked = response.ask(prompt)
+                  return extract_response_content(asked, prompt)
+                end
+
+                return nil unless response.is_a?(Hash)
+
+                response[:content] || response['content'] ||
+                  response.dig(:message, :content) || response.dig('message', 'content') ||
+                  response[:response] || response['response']
               end
             end
           end

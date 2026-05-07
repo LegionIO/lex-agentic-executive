@@ -4,7 +4,7 @@ module Legion
   module Extensions
     module Agentic
       module Executive
-        VERSION = '0.2.0'
+        VERSION = '0.2.1'
       end
     end
   end

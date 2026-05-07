@@ -33,6 +33,21 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
         expect(result[:success]).to be true
         expect(result[:strategy_used]).to eq(:heuristic)
       end
+
+      it 'parses native hash responses from Legion::LLM.chat' do
+        llm = Module.new
+        llm.define_singleton_method(:chat) do |message:, **|
+          raise 'missing prompt' if message.to_s.empty?
+
+          { content: '[{"content":"inspect controls","domain":"safety","priority":0.8}]' }
+        end
+        stub_const('Legion::LLM', llm)
+
+        result = described_class.decompose(goal: goal_hash, strategy: :llm)
+
+        expect(result[:strategy_used]).to eq(:llm)
+        expect(result[:sub_goals].first[:content]).to eq('inspect controls')
+      end
     end
 
     context 'with default strategy' do

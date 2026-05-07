@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.1] - 2026-05-07
+### Fixed
+- Goal decomposer LLM strategy now parses native `Legion::LLM.chat` hash responses without requiring a legacy chat session.
+- Added regression coverage for cognition-domain dispatch to the MindGrowth analyzer.
+
 ## [0.2.0] - 2026-04-21
 ### Added
 - **Autonomous Goal-Setting Pipeline (G1-G5)** — GAIA can now convert intentions into goals, decompose them, dispatch execution, and receive feedback with no human intervention

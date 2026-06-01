@@ -72,8 +72,9 @@ module Legion
 
               def common_ef_level
                 values = @components.values.map(&:effective_capacity)
+                min    = values.min
                 avg    = values.sum / values.size.to_f
-                (avg * (1.0 - COMMON_EF_WEIGHT)) + (avg * COMMON_EF_WEIGHT)
+                (avg * (1.0 - COMMON_EF_WEIGHT)) + (min * COMMON_EF_WEIGHT)
               end
 
               def can_inhibit?

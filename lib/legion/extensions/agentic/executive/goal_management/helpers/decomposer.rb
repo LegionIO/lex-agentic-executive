@@ -92,9 +92,9 @@ module Legion
 
                 data.map do |sg|
                   {
-                    content:  sg[:content].to_s,
-                    domain:   (sg[:domain] || domain).to_sym,
-                    priority: (sg[:priority] || 0.5).to_f.clamp(0.0, 1.0)
+                    content:  sg.fetch('content', sg.fetch(:content, '')).to_s,
+                    domain:   sg.fetch('domain', sg.fetch(:domain, domain)).to_sym,
+                    priority: sg.fetch('priority', sg.fetch(:priority, 0.5)).to_f.clamp(0.0, 1.0)
                   }
                 end
               rescue StandardError => e

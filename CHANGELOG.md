@@ -1,6 +1,13 @@
 # Changelog
 
+## [0.2.2] - 2026-05-08
+### Fixed
+- `Decomposer#parse_sub_goals` now accesses JSON sub-goal hashes using string keys (with symbol fallback), preventing LLM-decomposed goals from getting empty content/default domain/0.5 priority.
+- `ExecutiveController#common_ef_level` formula corrected — blends minimum effective capacity (weighted 0.6) with average (weighted 0.4) instead of computing a no-op `avg * 0.6 + avg * 0.4`.
+- `FeedbackListener` tracks event handler references, enabling `stop_listening` and `restart_listening` to prevent duplicate handler accumulation on repeated start calls.
+
 ## [0.2.1] - 2026-05-07
+
 ### Fixed
 - Goal decomposer LLM strategy now parses native `Legion::LLM.chat` hash responses without requiring a legacy chat session.
 - Added regression coverage for cognition-domain dispatch to the MindGrowth analyzer.

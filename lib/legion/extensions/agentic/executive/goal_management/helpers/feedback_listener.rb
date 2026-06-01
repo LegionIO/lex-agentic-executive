@@ -10,6 +10,7 @@ module Legion
               def initialize(engine:)
                 @engine    = engine
                 @listening = false
+                @handlers  = []
               end
 
               def handle_task_event(task_id:, status:, result: nil)
@@ -26,7 +27,7 @@ module Legion
                 return if @listening
                 return unless defined?(Legion::Events)
 
-                Legion::Events.on('task.completed') do |event|
+                handler_completed = Legion::Events.on('task.completed') do |event|
                   handle_task_event(
                     task_id: event[:task_id],
                     status:  event[:status] || 'task.completed',
@@ -34,7 +35,7 @@ module Legion
                   )
                 end
 
-                Legion::Events.on('task.failed') do |event|
+                handler_failed = Legion::Events.on('task.failed') do |event|
                   handle_task_event(
                     task_id: event[:task_id],
                     status:  event[:status] || 'task.failed',
@@ -42,7 +43,26 @@ module Legion
                   )
                 end
 
+                @handlers << { event: 'task.completed', block: handler_completed }
+                @handlers << { event: 'task.failed', block: handler_failed }
                 @listening = true
+              end
+
+              def stop_listening
+                return unless @listening
+
+                @handlers.each do |entry|
+                  Legion::Events.off(entry[:event], entry[:block])
+                rescue StandardError => e
+                  log.debug "[feedback_listener] stop_listening cleanup failed: #{e.message}"
+                end
+                @handlers.clear
+                @listening = false
+              end
+
+              def restart_listening
+                stop_listening
+                start_listening
               end
 
               def listening?

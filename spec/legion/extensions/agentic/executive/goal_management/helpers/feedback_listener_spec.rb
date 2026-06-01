@@ -101,4 +101,71 @@ RSpec.describe Legion::Extensions::Agentic::Executive::GoalManagement::Helpers::
       expect(listener.listening?).to be false
     end
   end
+
+  describe '#stop_listening' do
+    it 'removes registered handlers and resets listening state' do
+      events_spy = Class.new do
+        attr_reader :registered, :removed
+
+        def initialize
+          @registered = []
+          @removed = []
+        end
+
+        def on(event, &block)
+          @registered << { event: event, block: block }
+          block
+        end
+
+        def off(event, block)
+          @removed << { event: event, block: block }
+        end
+      end.new
+      stub_const('Legion::Events', events_spy)
+      listener.start_listening
+      expect(listener.listening?).to be true
+
+      listener.stop_listening
+      expect(listener.listening?).to be false
+      expect(events_spy.removed.size).to eq(2)
+      removed_events = events_spy.removed.map { |r| r[:event] }
+      expect(removed_events).to include('task.completed')
+      expect(removed_events).to include('task.failed')
+    end
+
+    it 'does nothing when not listening' do
+      expect { listener.stop_listening }.not_to raise_error
+      expect(listener.listening?).to be false
+    end
+  end
+
+  describe '#restart_listening' do
+    it 'stops and starts listening' do
+      events_spy = Class.new do
+        attr_reader :registered, :removed
+
+        def initialize
+          @registered = []
+          @removed = []
+        end
+
+        def on(event, &block)
+          @registered << { event: event, block: block }
+          block
+        end
+
+        def off(event, block)
+          @removed << { event: event, block: block }
+        end
+      end.new
+      stub_const('Legion::Events', events_spy)
+      listener.start_listening
+
+      listener.restart_listening
+      expect(listener.listening?).to be true
+      # Original handlers removed, new ones registered
+      expect(events_spy.removed.size).to eq(2)
+      expect(events_spy.registered.size).to eq(4) # 2 original + 2 new
+    end
+  end
 end

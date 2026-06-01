@@ -53,8 +53,8 @@ module Legion
 
                 @handlers.each do |entry|
                   Legion::Events.off(entry[:event], entry[:block])
-                rescue StandardError
-                  # swallow — listener already removed or Events unavailable
+                rescue StandardError => e
+                  log.debug "[feedback_listener] stop_listening cleanup failed: #{e.message}"
                 end
                 @handlers.clear
                 @listening = false

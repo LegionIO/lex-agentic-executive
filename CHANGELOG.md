@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.3] - 2026-10-29
+### Fixed
+- Reject unattributed goal feedback and preserve terminal goals and ancestor state when delayed task outcomes arrive.
+- Reclaim completed intention history at capacity without discarding active or suspended commitments.
+
 ## [0.2.2] - 2026-05-08
 ### Fixed
 - `Decomposer#parse_sub_goals` now accesses JSON sub-goal hashes using string keys (with symbol fallback), preventing LLM-decomposed goals from getting empty content/default domain/0.5 priority.

@@ -213,9 +213,15 @@ module Legion
               end
 
               def update_from_task_event(task_id:, status:, result: nil)
+                return { found: false } if task_id.nil?
+
                 @mutex.synchronize do
                   goal = @goals.values.find { |g| g.task_id == task_id }
                   return { found: false } unless goal
+                  if %i[completed abandoned].include?(goal.status)
+                    return { found: true, goal_id: goal.id, new_status: goal.status, progress: goal.progress,
+                             ignored: :terminal_goal }
+                  end
 
                   case status
                   when 'task.completed'
@@ -228,8 +234,8 @@ module Legion
                   when 'task.exception', 'task.failed'
                     goal.block!
                     persist_goal(goal)
-                    log.info "[goal_engine] goal status change goal=#{goal.id} transition=blocked"
-                    { found: true, goal_id: goal.id, new_status: :blocked, error: result }
+                    log.info "[goal_engine] goal status change goal=#{goal.id} transition=#{goal.status}"
+                    { found: true, goal_id: goal.id, new_status: goal.status, error: result }
                   else
                     { found: true, goal_id: goal.id, unhandled_status: status }
                   end

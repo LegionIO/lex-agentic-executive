@@ -15,6 +15,12 @@ module Legion
 
               def push(intention)
                 return :duplicate if duplicate?(intention)
+
+                if @intentions.size >= Constants::MAX_INTENTIONS
+                  completed_index = @intentions.index { |entry| entry[:state] == :completed }
+                  @intentions.delete_at(completed_index) if completed_index
+                end
+
                 return :capacity_full if @intentions.size >= Constants::MAX_INTENTIONS
 
                 @intentions << intention

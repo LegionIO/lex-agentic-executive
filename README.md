@@ -5,7 +5,7 @@ Domain consolidation gem for executive function, goal management, planning, and 
 ## Overview
 
 **Gem**: `lex-agentic-executive`
-**Version**: 0.1.12
+**Version**: 0.2.3
 **Namespace**: `Legion::Extensions::Agentic::Executive`
 
 ## Sub-Modules

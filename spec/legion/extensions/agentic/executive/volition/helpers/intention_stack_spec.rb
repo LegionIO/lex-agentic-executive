@@ -27,6 +27,22 @@ RSpec.describe Legion::Extensions::Agentic::Executive::Volition::Helpers::Intent
       expect(stack.push(make_intention(goal: 'overflow'))).to eq(:capacity_full)
     end
 
+    it 'reclaims completed history at capacity without losing pending commitments' do
+      limit = Legion::Extensions::Agentic::Executive::Volition::Helpers::Constants::MAX_INTENTIONS
+      intentions = Array.new(limit) { |i| make_intention(goal: "goal #{i}") }
+      intentions.each { |intention| stack.push(intention) }
+      stack.complete(intentions.first[:intention_id])
+      stack.suspend(intentions.last[:intention_id])
+      replacement = make_intention(goal: 'next commitment')
+
+      expect(stack.push(replacement)).to eq(:pushed)
+      expect(stack.size).to eq(limit)
+      expect(stack.active.map { |intention| intention[:goal] })
+        .to contain_exactly(*intentions[1...-1].map { |intention| intention[:goal] }, 'next commitment')
+      expect(stack.resume(intentions.last[:intention_id])).to eq(:resumed)
+      expect(stack.push(make_intention(goal: 'overflow'))).to eq(:capacity_full)
+    end
+
     it 'sorts by salience descending' do
       stack.push(make_intention(goal: 'low', salience: 0.3))
       stack.push(make_intention(goal: 'high', salience: 0.9))
